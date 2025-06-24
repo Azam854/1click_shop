@@ -1,0 +1,542 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>1click_shop.tj — Аксессуары для телефона</title>
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet" />
+  <style>
+    /* Reset и базовые стили */
+    *, *::before, *::after {
+      box-sizing: border-box;
+    }
+    body {
+      font-family: 'Roboto', sans-serif;
+      margin: 0; padding: 0;
+      background: #fafafa;
+      color: #222;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+    header {
+      background: #007bff;
+      color: white;
+      padding: 1.5rem 1rem;
+      text-align: center;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    }
+    header h1 {
+      margin: 0 0 0.2rem 0;
+      font-weight: 700;
+      font-size: 1.8rem;
+    }
+    header p {
+      margin: 0;
+      font-weight: 400;
+      font-size: 1rem;
+      opacity: 0.85;
+    }
+    main {
+      flex-grow: 1;
+      max-width: 1200px;
+      margin: 1rem auto 2rem;
+      padding: 0 1rem;
+      width: 100%;
+    }
+    .products {
+      display: grid;
+      grid-template-columns: repeat(auto-fill,minmax(220px,1fr));
+      gap: 1.25rem;
+    }
+    .product {
+      background: white;
+      border-radius: 12px;
+      box-shadow: 0 3px 12px rgba(0,0,0,0.07);
+      padding: 1rem;
+      text-align: center;
+      display: flex;
+      flex-direction: column;
+      transition: transform 0.25s ease, box-shadow 0.25s ease;
+      cursor: default;
+    }
+    .product:hover {
+      box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+      transform: translateY(-5px);
+    }
+    .product img {
+      max-width: 100%;
+      border-radius: 10px;
+      margin-bottom: 1rem;
+      user-select: none;
+      pointer-events: none;
+    }
+    .product h3 {
+      margin: 0 0 0.5rem 0;
+      font-weight: 700;
+      font-size: 1.1rem;
+      color: #333;
+      flex-grow: 1;
+    }
+    .product p {
+      margin: 0 0 1rem 0;
+      font-weight: 600;
+      color: #007bff;
+      font-size: 1.1rem;
+    }
+    .product button {
+      background: #007bff;
+      color: white;
+      border: none;
+      padding: 0.6rem 1rem;
+      border-radius: 8px;
+      font-weight: 600;
+      font-size: 1rem;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+      user-select: none;
+    }
+    .product button:hover {
+      background: #0056b3;
+    }
+
+    /* Корзина и счетчик */
+    #cart-counter {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      background: #007bff;
+      color: white;
+      padding: 12px 20px;
+      border-radius: 30px;
+      font-weight: 700;
+      font-size: 1rem;
+      cursor: pointer;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+      user-select: none;
+      z-index: 1200;
+      transition: background-color 0.3s ease;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    #cart-counter:hover {
+      background: #0056b3;
+    }
+
+    /* Модальное окно корзины */
+    #overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.5);
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.3s ease;
+      z-index: 1100;
+    }
+    #overlay.active {
+      opacity: 1;
+      pointer-events: auto;
+    }
+    #cart-modal {
+      position: fixed;
+      top: 0; right: 0;
+      width: 350px;
+      max-width: 90vw;
+      height: 100vh;
+      background: white;
+      box-shadow: -3px 0 15px rgba(0,0,0,0.2);
+      transform: translateX(100%);
+      transition: transform 0.3s ease;
+      display: flex;
+      flex-direction: column;
+      z-index: 1110;
+      border-radius: 0 0 0 12px;
+      padding: 1.5rem 1.5rem 2rem;
+    }
+    #cart-modal.active {
+      transform: translateX(0);
+    }
+    #cart-modal h3 {
+      margin: 0 0 1rem 0;
+      font-size: 1.3rem;
+      font-weight: 700;
+      color: #007bff;
+      user-select: none;
+    }
+    #cart-items {
+      flex-grow: 1;
+      overflow-y: auto;
+      margin-bottom: 1rem;
+      list-style: none;
+      padding: 0;
+    }
+    #cart-items li {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 0.9rem;
+      font-size: 0.95rem;
+      border-bottom: 1px solid #eee;
+      padding-bottom: 0.5rem;
+    }
+    #cart-items li span {
+      flex-grow: 1;
+      user-select: text;
+    }
+    #cart-items li div {
+      display: flex;
+      gap: 6px;
+    }
+    #cart-items button {
+      background: #007bff;
+      border: none;
+      color: white;
+      padding: 4px 9px;
+      border-radius: 5px;
+      cursor: pointer;
+      font-weight: 700;
+      transition: background-color 0.3s ease;
+      user-select: none;
+    }
+    #cart-items button:hover {
+      background: #0056b3;
+    }
+    #total-price {
+      font-weight: 700;
+      font-size: 1.1rem;
+      text-align: right;
+      margin-bottom: 1rem;
+      color: #222;
+      user-select: none;
+    }
+    #cart-buttons {
+      display: flex;
+      gap: 10px;
+    }
+    #cart-buttons button {
+      flex: 1;
+      padding: 0.7rem 0;
+      font-weight: 700;
+      font-size: 1rem;
+      border-radius: 8px;
+      border: none;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+      user-select: none;
+    }
+    #btn-go-to-order {
+      background: #007bff;
+      color: white;
+    }
+    #btn-go-to-order:hover {
+      background: #0056b3;
+    }
+    #submit-from-cart {
+      background: #28a745;
+      color: white;
+    }
+    #submit-from-cart:hover {
+      background: #1e7e34;
+    }
+
+    /* Форма оформления заказа */
+    form#order-form {
+      background: white;
+      max-width: 400px;
+      margin: 0 auto 2rem;
+      padding: 1.5rem 1.5rem 2rem;
+      border-radius: 12px;
+      box-shadow: 0 3px 12px rgba(0,0,0,0.07);
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+    form#order-form input,
+    form#order-form select,
+    form#order-form button {
+      font-size: 1rem;
+      padding: 0.65rem 0.9rem;
+      border-radius: 8px;
+      border: 1.8px solid #ddd;
+      transition: border-color 0.25s ease;
+      user-select: text;
+    }
+    form#order-form input:focus,
+    form#order-form select:focus {
+      border-color: #007bff;
+      outline: none;
+    }
+    form#order-form button {
+      background: #28a745;
+      color: white;
+      border: none;
+      font-weight: 700;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+      user-select: none;
+    }
+    form#order-form button:hover {
+      background: #1e7e34;
+    }
+
+    /* Мобильная адаптивность */
+    @media (max-width: 480px) {
+      #cart-modal {
+        width: 90vw;
+        padding: 1rem 1rem 1.5rem;
+      }
+      .products {
+        grid-template-columns: repeat(auto-fill,minmax(150px,1fr));
+        gap: 1rem;
+      }
+      .product h3 {
+        font-size: 1rem;
+      }
+      .product p {
+        font-size: 1rem;
+      }
+      #cart-counter {
+        padding: 10px 15px;
+        font-size: 0.95rem;
+      }
+    }
+  </style>
+
+  <!-- EmailJS SDK -->
+  <script src="https://cdn.emailjs.com/sdk/3.2/email.min.js"></script>
+  <script>
+    (function(){
+      emailjs.init('7FuR3uW__Q1DN3pj-');
+    })();
+  </script>
+</head>
+<body>
+  <header>
+    <h1>1click_shop.tj</h1>
+    <p>Интернет-магазин аксессуаров для телефонов</p>
+  </header>
+
+  <main>
+    <div class="products">
+      <div class="product">
+        <img src=https://i.postimg.cc/YSvYG984/photo-2025-06-24-21-14-32.jpg alt="Чехол Cristian Dior для iPhone" />
+        <h3>Чехол Cristian Dior для iPhone</h3>
+        <p>30 сомони</p>
+        <button class="add-to-cart">Добавить в корзину</button>
+      </div>
+      <div class="product">
+        <img src=https://i.postimg.cc/jSpGgnfr/photo-2025-06-25-02-49-11.jpg alt="Липучка для телефона" />
+        <h3>Липучка для телефона</h3>
+        <p>10 сомони</p>
+        <button class="add-to-cart">Добавить в корзину</button>
+      </div>
+      <div class="product">
+        <img src=https://i.postimg.cc/X73hC0bn/photo-2025-06-25-02-52-51.jpg alt="Чехол Gucci для iPhone" />
+        <h3>Чехол Gucci для iPhone</h3>
+        <p>60 сомони</p>
+        <button class="add-to-cart">Добавить в корзину</button><!-- Добавляй новые товары в таком же формате -->
+    </div>
+
+    <form id="order-form" novalidate>
+      <input name="fio" placeholder="ФИО" required />
+      <input name="email" type="email" placeholder="Email клиента" required />
+      <input name="address" placeholder="Адрес доставки" required />
+      <input name="phone" placeholder="Номер телефона" required />
+      <select name="payment" required>
+        <option value="">Выберите способ оплаты</option>
+        <option value="card">Оплата картой</option>
+        <option value="cash">Наличные при получении</option>
+      </select>
+      <button type="submit">Оформить заказ</button>
+    </form>
+  </main>
+
+  <div id="overlay"></div>
+  <div id="cart-modal">
+    <button class="close" id="close-cart" aria-label="Закрыть корзину">&times;</button>
+    <h3>Корзина</h3>
+    <ul id="cart-items"></ul>
+    <p id="total-price">Итого: 0 сомони</p>
+    <div id="cart-buttons">
+      <button id="btn-go-to-order" type="button">Перейти к оформлению</button>
+      <button id="submit-from-cart" type="button">Оформить заказ</button>
+    </div>
+  </div>
+
+  <div id="cart-counter" aria-label="Открыть корзину" role="button" tabindex="0">🛒 Корзина (0)</div>
+
+  <footer>
+    <p>&copy; 2025 1click_shop.tj — Все права защищены.</p>
+    <p>Свяжитесь с нами: 1clickshop.tj@gmail.com | +992926474728</p>
+  </footer>
+
+  <script>
+    function toggleCart(show) {
+      const cartModal = document.getElementById('cart-modal');
+      const overlay = document.getElementById('overlay');
+      if (!cartModal || !overlay) return;
+      if (show) {
+        cartModal.classList.add('active');
+        overlay.classList.add('active');
+      } else {
+        cartModal.classList.remove('active');
+        overlay.classList.remove('active');
+      }
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      let cart = [];
+      const cartCounter = document.getElementById('cart-counter');
+      const cartItems = document.getElementById('cart-items');
+      const addToCartButtons = document.querySelectorAll('.add-to-cart');
+      const overlay = document.getElementById('overlay');
+      const cartModal = document.getElementById('cart-modal');
+      const totalPriceEl = document.getElementById('total-price');
+      const orderForm = document.getElementById('order-form');
+      const closeCartBtn = document.getElementById('close-cart');
+      const btnSubmitFromCart = document.getElementById('submit-from-cart');
+      const btnGoToOrder = document.getElementById('btn-go-to-order');
+
+      // Добавление товара в корзину
+      addToCartButtons.forEach(button => {
+        button.addEventListener('click', e => {
+          const product = e.target.closest('.product');
+          const name = product.querySelector('h3').textContent;
+          const priceText = product.querySelector('p').textContent;
+          const price = parseFloat(priceText.replace(/[^\d.]/g, ''));
+          const existing = cart.find(item => item.name === name);
+          if (existing) {
+            existing.quantity++;
+          } else {
+            cart.push({ name, price, quantity: 1 });
+          }
+          updateCart();
+          alert('Товар добавлен в корзину!');
+        });
+      });
+
+      // Обновление корзины
+      function updateCart() {
+        const totalQuantity = cart.reduce((sum, item) => sum + item.quantity, 0);
+        cartCounter.textContent = `🛒 Корзина (${totalQuantity})`;
+        cartItems.innerHTML = '';
+        let total = 0;
+        cart.forEach((item, index) => {
+          total += item.price * item.quantity;
+          const li = document.createElement('li');
+          li.innerHTML = `
+            <span>${item.name} — ${item.price} сомони x ${item.quantity} = ${(item.price * item.quantity).toFixed(2)} сомони</span>
+            <div>
+              <button aria-label="Увеличить количество" onclick="changeQuantity(${index}, 1)">+</button>
+              <button aria-label="Уменьшить количество" onclick="changeQuantity(${index}, -1)">−</button>
+              <button aria-label="Удалить товар" onclick="removeItem(${index})">×</button>
+            </div>
+          `;
+          cartItems.appendChild(li);
+        });
+        totalPriceEl.textContent = `Итого: ${total.toFixed(2)} сомони`;
+      }
+
+      // Изменение количества
+      window.changeQuantity = function(index, delta) {
+        if (cart[index]) {
+          cart[index].quantity += delta;
+          if (cart[index].quantity <= 0) {
+            cart.splice(index, 1);
+          }
+          updateCart();
+        }
+      };
+
+      // Удаление товара из корзины
+      window.removeItem = function(index) {
+        if (cart[index]) {
+          cart.splice(index, 1);
+          updateCart();
+        }
+      };
+
+      // Открыть корзину
+      cartCounter.addEventListener('click', () => toggleCart(true));
+      cartCounter.addEventListener('keypress', e => {
+        if (e.key === 'Enter' || e.key === ' ') toggleCart(true);
+      });
+
+      // Закрыть корзину
+      closeCartBtn.addEventListener('click', () => toggleCart(false));
+      overlay.addEventListener('click', () => toggleCart(false));
+
+      // Перейти к форме заказа из корзины
+      btnGoToOrder.addEventListener('click', () => {
+        toggleCart(false);
+        orderForm.scrollIntoView({ behavior: 'smooth' });
+      });
+
+      // Оформить заказ из корзины
+      btnSubmitFromCart.addEventListener('click', () => {
+        if (!orderForm) {
+          alert('Форма заказа недоступна.');
+          return;
+        }
+        const event = new Event('submit', { cancelable: true, bubbles: true });
+        orderForm.dispatchEvent(event);
+      });
+
+      // Обработка отправки формы заказа
+      orderForm.addEventListener('submit', function(e) {
+        e.preventDefault();
+
+        const fio = this.querySelector('input[name="fio"]').value.trim();
+        const email = this.querySelector('input[name="email"]').value.trim();
+        const address = this.querySelector('input[name="address"]').value.trim();
+        const phone = this.querySelector('input[name="phone"]').value.trim();
+        const payment = this.querySelector('select[name="payment"]').value;
+
+        if (!fio || !email || !address || !phone || payment === "") {
+          alert('Пожалуйста, заполните все поля корректно.');
+          return;
+        }
+        if (cart.length === 0) {
+          alert('Корзина пуста!');
+          return;
+        }
+
+        let itemsText = cart.map(item => `${item.name} — ${item.price} x ${item.quantity} = ${(item.price * item.quantity).toFixed(2)} сомони`).join('\n');
+        let totalSum = cart.reduce((sum, item) => sum + item.price * item.quantity, 0).toFixed(2);
+
+        const templateParams = {
+          fio,
+          email,
+          phone,
+          address,
+          payment,
+          items: itemsText,
+          total: totalSum
+        };
+
+        if (typeof emailjs.send !== 'function') {
+          alert('Ошибка загрузки EmailJS. Попробуйте позже.');
+          return;
+        }
+
+        emailjs.send('service_8tl5ode', 'template_24w9fkq', templateParams)
+          .then(() => {
+            alert('Заказ успешно отправлен! Спасибо.');
+            cart = [];
+            updateCart();
+            toggleCart(false);
+            orderForm.reset();
+          }, (error) => {
+            console.error('EmailJS error:', error);
+            alert('Ошибка при отправке заказа. Попробуйте позже.');
+          });
+      });
+
+      updateCart(); // Инициализация счетчика корзины
+    });
+  </script>
+</body>
+</html>
